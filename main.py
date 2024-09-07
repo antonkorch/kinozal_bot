@@ -6,8 +6,6 @@ import os
 from datetime import datetime
 from time import sleep
 from bs4 import BeautifulSoup
-from collections import defaultdict
-from icecream import ic
 
 # Load config
 dir_path = (os.path.dirname(__file__))
@@ -18,7 +16,7 @@ myid = int(config['Telegram']['myid'])
 
 
 def check_series_date(name,date):
-    sleep(1)
+    sleep(10)
 
     url = "https://kinozal.tv/browse.php?s="+name
 
