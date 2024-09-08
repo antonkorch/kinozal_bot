@@ -7,6 +7,8 @@ from datetime import datetime
 from time import sleep
 from bs4 import BeautifulSoup
 
+dir_path = (os.path.dirname(__file__))
+
 def check_series_date(name,date):
     sleep(10)
 
@@ -51,7 +53,6 @@ def save_series_list(data):
 
 if __name__ == "__main__":
     # Load config
-    dir_path = (os.path.dirname(__file__))
     config = configparser.ConfigParser()
     config.read(f'{dir_path}/settings.ini')
     bot = telebot.TeleBot(config['Telegram']['token'])
