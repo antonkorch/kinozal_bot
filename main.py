@@ -7,14 +7,6 @@ from datetime import datetime
 from time import sleep
 from bs4 import BeautifulSoup
 
-# Load config
-dir_path = (os.path.dirname(__file__))
-config = configparser.ConfigParser()
-config.read(f'{dir_path}/settings.ini')
-bot = telebot.TeleBot(config['Telegram']['token'])
-myid = int(config['Telegram']['myid'])
-
-
 def check_series_date(name,date):
     sleep(10)
 
@@ -25,32 +17,21 @@ def check_series_date(name,date):
 
     try:
         request = requests.get(url, timeout = 5)
-    except requests.exceptions.RequestException as e:
-        print ("Error: " + str(e))
-        return (datetime.strptime(date, '%Y-%m-%d').date(), "Series not found")
-    
-    if request.status_code != 200:
-        print ("Error: " + str(request.status_code))
-        return (datetime.strptime(date, '%Y-%m-%d').date(), "Series not found")
-        
-    html = request.content
-    soup = BeautifulSoup(html, 'html.parser')
+        html = request.content
+        soup = BeautifulSoup(html, 'html.parser')
+        html_data = soup.find_all('td', attrs={'class': 's'})
 
-    html_data = soup.find_all('td', attrs={'class': 's'})
+        last_date = (html_data[2].text[:11]).strip()
+        if last_date[:5] == "вчера" or last_date[:5] == "сегод":
+            last_date = datetime.now().date()
+        else:
+            last_date = datetime.strptime(last_date, '%d.%m.%Y').date()
 
-    if len(html_data) == 0:
-        print ("Series not found")
-        return (datetime.strptime(date, '%Y-%m-%d').date(), "Series not found")
-
-    last_date = (html_data[2].text[:11]).strip()
-    if last_date[:5] == "вчера" or last_date[:5] == "сегод":
-        last_date = datetime.now().date()
-    else:
-        last_date = datetime.strptime(last_date, '%d.%m.%Y').date()
-    try:
         full_name = soup.find('a', attrs={'class': 'r1'}).text
-    except:
-        full_name = name
+
+    except Exception as e:
+        print (f"Error: {e}")
+        return (datetime.strptime(date, '%Y-%m-%d').date(), name)
 
     return (last_date, full_name)
 
@@ -69,6 +50,13 @@ def save_series_list(data):
             writer.writerow(row)
 
 if __name__ == "__main__":
+    # Load config
+    dir_path = (os.path.dirname(__file__))
+    config = configparser.ConfigParser()
+    config.read(f'{dir_path}/settings.ini')
+    bot = telebot.TeleBot(config['Telegram']['token'])
+    myid = int(config['Telegram']['myid'])
+    
     data = get_series_list()
 
     for indx, elem in enumerate(data):
